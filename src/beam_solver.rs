@@ -80,37 +80,35 @@ fn line_answer(field: Field, stamps: &[Stamp], beam_width: i32, instant: &Instan
         score: 0
     });
 
-    loop {
+    while  instant.elapsed() <= *duration {
         let mut next_queue = BinaryHeap::with_capacity(beam_width as usize * stamps.len());
 
-        for _ in 0..beam_width {
-            if instant.elapsed() > *duration {
-                return None;
-            }
+        for _ in 0..min(beam_width, prev_queue.len() as i32) {
+            let prev = prev_queue.pop().unwrap();
 
-            if let Some(prev) = prev_queue.pop() {
-                if let Some(target_x) = target_x(&prev.field) {
-                    for (s, stamp) in stamps.iter().enumerate() {
-                        let x = target_x - unsafe { _tzcnt_u64(stamp.lines()[0]) } as i32;
+            if let Some(target_x) = target_x(&prev.field) {
+                for (s, stamp) in stamps.iter().enumerate() {
+                    let x = target_x - unsafe { _tzcnt_u64(stamp.lines()[0]) } as i32;
 
-                        let next_field = next_field(&prev.field, stamp, x);
-                        let next_line_answer = next_line_answer(&prev.line_answer, s as i16, x as i16);
-                        let next_score = next_score(&next_field);
+                    let next_field = next_field(&prev.field, stamp, x);
+                    let next_line_answer = next_line_answer(&prev.line_answer, s as i16, x as i16);
+                    let next_score = next_score(&next_field);
 
-                        next_queue.push(Node {
-                            field: next_field,
-                            line_answer: next_line_answer,
-                            score: next_score
-                        });
-                    }
-                } else {
-                    return Some(prev.line_answer);
+                    next_queue.push(Node {
+                        field: next_field,
+                        line_answer: next_line_answer,
+                        score: next_score
+                    });
                 }
+            } else {
+                return Some(prev.line_answer);
             }
         }
 
         prev_queue = next_queue;
     }
+
+    None
 }
 
 pub fn answer(mut field: Field, stamps: &[Stamp], beam_width: i32, instant: &Instant, duration: &Duration) -> Option<Vec<(i32, i32, i32)>> {

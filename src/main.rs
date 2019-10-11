@@ -1,16 +1,18 @@
+use rayon::*;
+use rayon::prelude::*;
 use std::time::*;
-use std::iter::*;
 
 use stamp_art::beam_solver;
 use stamp_art::bfs_solver;
 use stamp_art::hill_climbing_solver;
 use stamp_art::io::*;
 
-const DURATION:    Duration = Duration::from_millis(9000);
-const BEAM_WIDTHS: [i32; 8] = [32, 64, 128, 256, 512, 1024, 2048, 4096];
+const DURATION: Duration = Duration::from_millis(9000);
 
 fn main() {
     let instant = Instant::now();
+
+    ThreadPoolBuilder::new().num_threads(2).build_global().unwrap();
 
     let (field, stamps, offsets) = read_question();
 
@@ -18,15 +20,25 @@ fn main() {
         let mut result = bfs_solver::answer(field.clone(), &stamps);
         eprintln!("{}\t{}", result.len(), instant.elapsed().as_millis());
 
-        let answers = once(hill_climbing_solver::answer(field.clone(), &stamps, &instant, &DURATION)).chain(
-            BEAM_WIDTHS.iter().map(|beam_width| beam_solver::answer(field.clone(), &stamps, *beam_width, &instant, &DURATION))
-        ).take_while(|answer| answer.is_some()).map(|answer| answer.unwrap());
+        let answers = [1, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192].iter().map(|beam_width| {
+            let answer = if *beam_width == 1 {
+                hill_climbing_solver::answer(field.clone(), &stamps, &instant, &DURATION)
+            } else {
+                beam_solver::answer(field.clone(), &stamps, *beam_width, &instant, &DURATION)
+            };
+
+            if let Some(answer) = &answer {
+                eprintln!("{}\t{}\t{}", answer.len(), instant.elapsed().as_millis(), beam_width);
+            }
+
+            answer
+        }).collect::<Vec<_>>();
 
         for answer in answers {
-            eprintln!("{}\t{}", answer.len(), instant.elapsed().as_millis());
-
-            if answer.len() < result.len() {
-                result = answer;
+            if let Some(answer) = answer {
+                if answer.len() < result.len() {
+                    result = answer;
+                }
             }
         }
 

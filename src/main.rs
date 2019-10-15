@@ -15,7 +15,7 @@ fn main() {
         let mut result = bfs_solver::answer(field.clone(), &stamps);
         eprintln!("{}\t{}", result.len(), instant.elapsed().as_millis());
 
-        let answers = [1, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192].iter().map(|beam_width| {
+        let answers = [1, 32, 128, 256, 512, 1024, 2048, 4096].iter().map(|beam_width| {
             if *beam_width == 1 {
                 hill_climbing_solver::answer(field.clone(), &stamps, &instant, &duration)
             } else {

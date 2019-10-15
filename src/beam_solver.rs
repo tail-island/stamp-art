@@ -42,14 +42,15 @@ fn next_line_answer(prev_line_answer: &[(i16, i16)], s: i16, x: i16) -> Vec<(i16
 }
 
 fn next_score(next_field: &Field) -> i32 {
-    -(next_field.field_units().iter().map(|field_unit| unsafe { _popcnt64(field_unit.lines()[0] as i64) } as i32).sum::<i32>() * next_field.height() + next_field.count())
+    -(next_field.field_units().iter().map(|field_unit| unsafe { _popcnt64(field_unit.lines()[0] as i64) } as i32).sum::<i32>() * next_field.height() +
+      next_field.count())
 }
 
 fn line_answer(field: Field, stamps: &[Stamp], beam_width: i32, instant: &Instant, duration: &Duration) -> Option<Vec<(i16, i16)>> {
     struct Node {
         field: Field,
-        line_answer: Vec<(i16, i16)>,
-        score: i32
+        score: i32,
+        line_answer: Vec<(i16, i16)>
     }
 
     impl PartialEq for Node {
@@ -76,8 +77,8 @@ fn line_answer(field: Field, stamps: &[Stamp], beam_width: i32, instant: &Instan
 
     prev_queue.push(Node {
         field,
-        line_answer: Vec::new(),
-        score: 0
+        score: 0,
+        line_answer: Vec::new()
     });
 
     while instant.elapsed() <= *duration {
@@ -91,13 +92,13 @@ fn line_answer(field: Field, stamps: &[Stamp], beam_width: i32, instant: &Instan
                     let x = target_x - unsafe { _tzcnt_u64(stamp.lines()[0]) } as i32;
 
                     let next_field = next_field(&prev.field, stamp, x);
-                    let next_line_answer = next_line_answer(&prev.line_answer, s as i16, x as i16);
                     let next_score = next_score(&next_field);
+                    let next_line_answer = next_line_answer(&prev.line_answer, s as i16, x as i16);
 
                     next_queue.push(Node {
                         field: next_field,
-                        line_answer: next_line_answer,
-                        score: next_score
+                        score: next_score,
+                        line_answer: next_line_answer
                     });
                 }
             } else {

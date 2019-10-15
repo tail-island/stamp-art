@@ -19,7 +19,9 @@ fn next_line_answer(prev_line_answer: &[(u8, u8)], s: u8, x: u8) -> Vec<(u8, u8)
 fn line_answers(stamp_lines: &[u32]) -> Vec<Vec<(u8, u8)>> {
     let mut result = Vec::new(); result.resize(C, Vec::new());
 
+    let mut visited = Vec::<bool>::new(); visited.resize(C, false);
     let mut c = 1;
+
     let mut queue = VecDeque::with_capacity(C); queue.push_back(0);
 
     while c < C {
@@ -29,8 +31,10 @@ fn line_answers(stamp_lines: &[u32]) -> Vec<Vec<(u8, u8)>> {
             for x in 0..W {
                 let next_line = line ^ stamp_line << x & M;
 
-                if next_line != 0 && unsafe { result.get_unchecked(next_line as usize) }.is_empty() {
+                if next_line != 0 && unsafe { !visited.get_unchecked(next_line as usize) } {
                     result[next_line as usize] = next_line_answer(&result[line as usize], s as u8, x as u8);
+
+                    visited[next_line as usize] = true;
                     c += 1;
 
                     queue.push_back(next_line);

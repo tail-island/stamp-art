@@ -136,16 +136,14 @@ impl FieldUnit {
 
                 _mm256_storeu_si256(self.0.lines.as_ptr().add((y_1 + i) as usize) as *mut __m256i, _mm256_xor_si256(l_1, l_2));
             }
-
-            if y_1 + (height + 3) & !0b0011 > self.0.height {
-                self.0.lines[ self.0.height      as usize] = 0;
-                self.0.lines[(self.0.height + 1) as usize] = 0;
-                self.0.lines[(self.0.height + 2) as usize] = 0;
-            }
         }
+
+        self.0.lines[ self.0.height      as usize] = 0;
+        self.0.lines[(self.0.height + 1) as usize] = 0;
+        self.0.lines[(self.0.height + 2) as usize] = 0;
     }
 
-    pub fn stamp_on_top(&mut self, stamp: &Stamp, x: i32) {
+    fn stamp_on_top_with_mask(&mut self, stamp: &Stamp, x: i32) {
         unsafe {
             let height = min(self.0.height, stamp.0.height);
             let m = _mm256_set1_epi64x(((0xffffffffffffffff as u64) >> (64 - self.0.width)) as i64);
@@ -167,12 +165,45 @@ impl FieldUnit {
 
                 _mm256_storeu_si256(self.0.lines.as_ptr().add(i as usize) as *mut __m256i, _mm256_xor_si256(l_1, l_2));
             }
+        }
 
-            if (height + 3) & !0b0011 > self.0.height {
-                self.0.lines[ self.0.height      as usize] = 0;
-                self.0.lines[(self.0.height + 1) as usize] = 0;
-                self.0.lines[(self.0.height + 2) as usize] = 0;
+        self.0.lines[ self.0.height      as usize] = 0;
+        self.0.lines[(self.0.height + 1) as usize] = 0;
+        self.0.lines[(self.0.height + 2) as usize] = 0;
+    }
+
+    fn stamp_on_top_without_mask(&mut self, stamp: &Stamp, x: i32) {
+        unsafe {
+            let height = min(self.0.height, stamp.0.height);
+
+            for i in (0..((height + 3) & !0b0011)).step_by(4) {
+                let l_1 = _mm256_loadu_si256(self.0.lines.as_ptr().add(i as usize) as *const __m256i);
+                let l_2 = {
+                    let mut result = _mm256_loadu_si256(stamp.0.lines.as_ptr().add(i as usize) as *const __m256i);
+
+                    result = if x > 0 {
+                        _mm256_slli_epi64(result,  x)
+                    } else {
+                        _mm256_srli_epi64(result, -x)
+                    };
+
+                    result
+                };
+
+                _mm256_storeu_si256(self.0.lines.as_ptr().add(i as usize) as *mut __m256i, _mm256_xor_si256(l_1, l_2));
             }
+        }
+
+        self.0.lines[ self.0.height      as usize] = 0;
+        self.0.lines[(self.0.height + 1) as usize] = 0;
+        self.0.lines[(self.0.height + 2) as usize] = 0;
+    }
+
+    pub fn stamp_on_top(&mut self, stamp: &Stamp, x: i32) {
+        if self.0.width != 64 {
+            self.stamp_on_top_with_mask(stamp, x);
+        } else {
+            self.stamp_on_top_without_mask(stamp, x);
         }
     }
 }

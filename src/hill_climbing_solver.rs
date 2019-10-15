@@ -17,33 +17,33 @@ pub fn answer(mut field: Field, stamps: &[Stamp], instant: &Instant, duration: &
     let mut result = Vec::new();
 
     for y in 0..field.height() {
-        if instant.elapsed() > *duration {
-            return None;
-        }
+        if instant.elapsed() <= *duration {
+            while let Some(target_x) = target_x(&field, y) {
+                let mut best_cost = i32::max_value();
+                let mut best_s = 0;
+                let mut best_x = 0;
 
-        while let Some(target_x) = target_x(&field, y) {
-            let mut best_cost = i32::max_value();
-            let mut best_s = 0;
-            let mut best_x = 0;
+                for (s, stamp) in stamps.iter().enumerate() {
+                    let x = target_x - unsafe { _tzcnt_u64(*stamp.lines().get_unchecked(0)) } as i32;
 
-            for (s, stamp) in stamps.iter().enumerate() {
-                let x = target_x - unsafe { _tzcnt_u64(*stamp.lines().get_unchecked(0)) } as i32;
+                    field.stamp(stamp, x, y);
 
-                field.stamp(stamp, x, y);
+                    let cost = field.count();
 
-                let cost = field.count();
+                    if cost < best_cost {
+                        best_cost = cost;
+                        best_s = s;
+                        best_x = x;
+                    }
 
-                if cost < best_cost {
-                    best_cost = cost;
-                    best_s = s;
-                    best_x = x;
+                    field.stamp(stamp, x, y);
                 }
 
-                field.stamp(stamp, x, y);
+                field.stamp(&stamps[best_s as usize], best_x, y);
+                result.push((best_s as i32, best_x as i32, y as i32));
             }
-
-            field.stamp(&stamps[best_s as usize], best_x, y);
-            result.push((best_s as i32, best_x as i32, y as i32));
+        } else {
+            return None;
         }
     }
 

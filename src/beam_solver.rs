@@ -9,7 +9,7 @@ fn target_field(field: &Field, stamps: &[Stamp], y: i32) -> Field {
     let height = min(stamps.iter().map(|stamp| stamp.height()).max().unwrap(), field.height() - y);
 
     Field::new(
-        field.field_units().iter().map(|field_unit| FieldUnit::new(field_unit.lines()[y as usize..(y + height) as usize].to_vec(), field_unit.width())).collect::<Vec<_>>(),
+        field.field_units().iter().map(|field_unit| FieldUnit::new(field_unit.lines()[y as usize..(y + height) as usize].to_vec(), field_unit.width())).collect(),
         field.width()
     )
 }
@@ -80,7 +80,7 @@ fn line_answer(field: Field, stamps: &[Stamp], beam_width: i32, instant: &Instan
         score: 0
     });
 
-    while  instant.elapsed() <= *duration {
+    while instant.elapsed() <= *duration {
         let mut next_queue = BinaryHeap::with_capacity(beam_width as usize * stamps.len());
 
         for _ in 0..min(beam_width, prev_queue.len() as i32) {

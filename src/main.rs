@@ -54,4 +54,6 @@ fn main() {
     };
 
     write_answer(&answer, &offsets);
+
+    eprintln!("{}\t{} !", answer.len(), instant.elapsed().as_millis());
 }

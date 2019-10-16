@@ -1,6 +1,44 @@
 use std::arch::x86_64::*;
 use std::cmp::*;
 
+pub fn popcount_u64s(u64s: &[u64]) -> i32 {  // u64sの要素数は4の整数倍。
+    unsafe {
+        let table = _mm256_setr_epi8(0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4);
+        let mask  = _mm256_set1_epi8(0x0f);
+        let zero  = _mm256_setzero_si256();
+
+        let mut r_64x4 = _mm256_setzero_si256();
+        let mut r_8x32 = _mm256_setzero_si256();
+
+        let mut c = 0;
+
+        for i in (0..u64s.len()).step_by(4) {
+            let l = _mm256_loadu_si256(u64s.as_ptr().add(i as usize) as *const __m256i);
+
+            r_8x32 = _mm256_add_epi8(r_8x32, _mm256_add_epi8(_mm256_shuffle_epi8(table, _mm256_and_si256(                  l,     mask)),
+                                                             _mm256_shuffle_epi8(table, _mm256_and_si256(_mm256_srli_epi64(l, 4), mask))));
+
+            c += 1;
+
+            if c == 31 {
+                r_64x4 = _mm256_add_epi64(r_64x4, _mm256_sad_epu8(r_8x32, zero));
+                r_8x32 = _mm256_setzero_si256();
+
+                c = 0;
+            }
+        }
+
+        if c != 0 {
+            r_64x4 = _mm256_add_epi64(r_64x4, _mm256_sad_epu8(r_8x32, zero));
+        }
+
+        let r_64x2 = _mm_add_epi64(_mm256_extracti128_si256(r_64x4, 1), _mm256_castsi256_si128(r_64x4));
+        let r_64x1 = _mm_add_epi64(_mm_srli_si128(r_64x2, 8), r_64x2);
+
+        _mm_cvtsi128_si64(r_64x1) as i32
+    }
+}
+
 #[derive(Clone)]
 struct Bitmap {
     width: i32,
@@ -26,41 +64,7 @@ impl Bitmap {
     }
 
     fn count(&self) -> i32 {
-        unsafe {
-            let table = _mm256_setr_epi8(0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4);
-            let mask  = _mm256_set1_epi8(0x0f);
-            let zero  = _mm256_setzero_si256();
-
-            let mut r_64x4 = _mm256_setzero_si256();
-            let mut r_8x32 = _mm256_setzero_si256();
-
-            let mut c = 0;
-
-            for i in (0..((self.height + 3) & !0b0011)).step_by(4) {
-                let l = _mm256_loadu_si256(self.lines.as_ptr().add(i as usize) as *const __m256i);
-
-                r_8x32 = _mm256_add_epi8(r_8x32, _mm256_add_epi8(_mm256_shuffle_epi8(table, _mm256_and_si256(                  l,     mask)),
-                                                                 _mm256_shuffle_epi8(table, _mm256_and_si256(_mm256_srli_epi64(l, 4), mask))));
-
-                c += 1;
-
-                if c == 31 {
-                    r_64x4 = _mm256_add_epi64(r_64x4, _mm256_sad_epu8(r_8x32, zero));
-                    r_8x32 = _mm256_setzero_si256();
-
-                    c = 0;
-                }
-            }
-
-            if c != 0 {
-                r_64x4 = _mm256_add_epi64(r_64x4, _mm256_sad_epu8(r_8x32, zero));
-            }
-
-            let r_64x2 = _mm_add_epi64(_mm256_extracti128_si256(r_64x4, 1), _mm256_castsi256_si128(r_64x4));
-            let r_64x1 = _mm_add_epi64(_mm_srli_si128(r_64x2, 8), r_64x2);
-
-            _mm_cvtsi128_si64(r_64x1) as i32
-        }
+        popcount_u64s(&self.lines[0..((self.height + 3) & !0b0011) as usize])
     }
 }
 

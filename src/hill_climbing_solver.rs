@@ -1,4 +1,5 @@
 use std::arch::x86_64::*;
+use std::cmp::*;
 use std::time::*;
 
 use super::game::*;
@@ -28,7 +29,7 @@ pub fn answer(mut field: Field, stamps: &[Stamp], instant: &Instant, duration: &
 
                     field.stamp(stamp, x, y);
 
-                    let cost = field.count();
+                    let cost = field.field_units().iter().map(|field_unit| popcount_u64s(&field_unit.lines()[y as usize..(y + (min(stamps.iter().map(|stamp| stamp.height()).max().unwrap(), field.height() - y) + 3) & !0b0011) as usize])).sum();
 
                     if cost < best_cost {
                         best_cost = cost;

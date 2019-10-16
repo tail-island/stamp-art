@@ -28,24 +28,26 @@ fn main() {
             }
         };
 
-        let answers = [1, 32, 128, 256, 512, 1024, 2048, 4096].iter().map(|beam_width| {
-            if *beam_width == 1 {
+        for beam_width in &[1, 32, 128, 256, 512, 1024, 2048, 4096] {
+            let answer = if *beam_width == 1 {
                 hill_climbing_solver::answer(field.clone(), &stamps, &instant, &duration)
             } else {
                 beam_solver::answer(field.clone(), &stamps, *beam_width, &instant, &duration)
-            }
-        }).take_while(|option| option.is_some()).map(|option| option.unwrap());
+            };
 
-        for answer in answers {
-            eprintln!("{}\t{}", answer.len(), instant.elapsed().as_millis());
+            if let Some(answer) = answer {
+                eprintln!("{}\t{}", answer.len(), instant.elapsed().as_millis());
 
-            if answer.len() < result.len() {
-                result = answer;
+                if answer.len() < result.len() {
+                    result = answer;
+                }
+            } else {
+                break;
             }
         }
 
         if is_rev {
-            result = result.iter().map(|(s, x, y)| (*s, *x, field.height() - *y - stamps[*s as usize].height())).collect::<Vec<_>>();
+            result = result.into_iter().map(|(s, x, y)| (s, x, field.height() - y - stamps[s as usize].height())).collect::<Vec<_>>();
         }
 
         result

@@ -17,6 +17,8 @@ fn target_x(field: &Field, y: i32) -> Option<i32> {
 pub fn answer(mut field: Field, stamps: &[Stamp], instant: &Instant, duration: &Duration) -> Option<Vec<(i32, i32, i32)>> {
     let mut result = Vec::new();
 
+    let stamp_max_height = stamps.iter().map(|stamp| stamp.height()).max().unwrap();
+
     for y in 0..field.height() {
         if instant.elapsed() <= *duration {
             while let Some(target_x) = target_x(&field, y) {
@@ -29,7 +31,7 @@ pub fn answer(mut field: Field, stamps: &[Stamp], instant: &Instant, duration: &
 
                     field.stamp(stamp, x, y);
 
-                    let cost = field.field_units().iter().map(|field_unit| popcount_u64s(&field_unit.lines()[y as usize..(y + (min(stamps.iter().map(|stamp| stamp.height()).max().unwrap(), field.height() - y) + 3) & !0b0011) as usize])).sum();
+                    let cost = field.field_units().iter().map(|field_unit| popcount_u64s(&field_unit.lines()[y as usize..(y + (min(stamp_max_height, field.height() - y) + 3) & !0b0011) as usize])).sum();
 
                     if cost < best_cost {
                         best_cost = cost;

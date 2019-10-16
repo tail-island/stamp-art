@@ -12,8 +12,21 @@ fn main() {
     let (field, stamps, offsets) = read_question();
 
     let answer = {
-        let mut result = bfs_solver::answer(field.clone(), &stamps);
-        eprintln!("{}\t{}", result.len(), instant.elapsed().as_millis());
+        let (rev_field, rev_stamps) = rev_question(&field, &stamps);
+
+        let (mut result, field, stamps, is_rev) = {
+            let result = bfs_solver::answer(field.clone(), &stamps);
+            eprintln!("{}\t{}", result.len(), instant.elapsed().as_millis());
+
+            let rev_result = bfs_solver::answer(rev_field.clone(), &rev_stamps);
+            eprintln!("{}\t{}", rev_result.len(), instant.elapsed().as_millis());
+
+            if result.len() <= rev_result.len() {
+                (result, field, stamps, false)
+            } else {
+                (rev_result, rev_field, rev_stamps, true)
+            }
+        };
 
         let answers = [1, 32, 128, 256, 512, 1024, 2048, 4096].iter().map(|beam_width| {
             if *beam_width == 1 {
@@ -29,6 +42,10 @@ fn main() {
             if answer.len() < result.len() {
                 result = answer;
             }
+        }
+
+        if is_rev {
+            result = result.iter().map(|(s, x, y)| (*s, *x, field.height() - *y - stamps[*s as usize].height())).collect::<Vec<_>>();
         }
 
         result

@@ -100,6 +100,20 @@ pub fn read_question() -> (Field, Vec<Stamp>, Vec<(i32, i32)>) {
     (field, stamps, offsets)
 }
 
+pub fn rev_question(field: &Field, stamps: &[Stamp]) -> (Field, Vec<Stamp>) {
+    (
+        Field::new(
+            field.field_units().iter().map(|field_unit| {
+                FieldUnit::new(field_unit.lines()[0..field.height() as usize].iter().rev().copied().collect::<Vec<_>>(), field_unit.width())
+            }).collect::<Vec<_>>(),
+            field.width()
+        ),
+        stamps.iter().map(|stamp| {
+            Stamp::new(stamp.lines()[0..stamp.height() as usize].iter().rev().copied().collect::<Vec<_>>(), stamp.width())
+        }).collect::<Vec<_>>()
+    )
+}
+
 pub fn write_answer(answer: &[(i32, i32, i32)], offsets: &[(i32, i32)]) {
     let stdout = stdout();
 

@@ -12,11 +12,11 @@ fn main() {
     let (field, stamps, offsets) = read_question();
 
     let answer = {
-        let (rev_field, rev_stamps) = rev_question(&field, &stamps);
-
         let (mut result, field, stamps, is_rev) = {
             let result = bfs_solver::answer(field.clone(), &stamps);
             eprintln!("{}\t{}", result.len(), instant.elapsed().as_millis());
+
+            let (rev_field, rev_stamps) = rev_question(&field, &stamps);
 
             let rev_result = bfs_solver::answer(rev_field.clone(), &rev_stamps);
             eprintln!("{}\t{}", rev_result.len(), instant.elapsed().as_millis());

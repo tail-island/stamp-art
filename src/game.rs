@@ -1,7 +1,7 @@
 use std::arch::x86_64::*;
 use std::cmp::*;
 
-pub fn popcount_u64s(u64s: &[u64]) -> i32 {  // u64sの要素数は4の整数倍。
+fn popcount_u64s(u64s: &[u64]) -> i32 {  // u64sの要素数は4の整数倍。
     unsafe {
         let table = _mm256_setr_epi8(0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4);
         let mask  = _mm256_set1_epi8(0x0f);
@@ -66,6 +66,10 @@ impl Bitmap {
     fn count(&self) -> i32 {
         popcount_u64s(&self.lines[0..((self.height + 3) & !0b0011) as usize])
     }
+
+    fn count_in(&self, y: i32, height: i32) -> i32 {
+        popcount_u64s(&self.lines[y as usize..(y + (height + 3) & !0b0011) as usize])
+    }
 }
 
 pub struct Stamp(Bitmap);
@@ -114,6 +118,10 @@ impl FieldUnit {
 
     pub fn count(&self) -> i32 {
         self.0.count()
+    }
+
+    pub fn count_in(&self, y: i32, height: i32) -> i32 {
+        self.0.count_in(y, height)
     }
 
     pub fn stamp(&mut self, stamp: &Stamp, x: i32, y: i32) {
@@ -243,6 +251,16 @@ impl Field {
 
         for field_unit in &self.field_units {
             result += field_unit.count();
+        }
+
+        result
+    }
+
+    pub fn count_in(&self, y: i32, height: i32) -> i32 {
+        let mut result = 0;
+
+        for field_unit in &self.field_units {
+            result += field_unit.count_in(y, height);
         }
 
         result

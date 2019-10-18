@@ -42,8 +42,7 @@ fn next_line_answer(prev_line_answer: &[(i16, i16)], s: i16, x: i16) -> Vec<(i16
 }
 
 fn next_score(next_field: &Field) -> i32 {
-    -(next_field.field_units().iter().map(|field_unit| unsafe { _popcnt64(field_unit.lines()[0] as i64) } as i32).sum::<i32>() * next_field.height() +
-      next_field.count())
+    -(next_field.field_units().iter().map(|field_unit| unsafe { _popcnt64(field_unit.lines()[0] as i64) } as i32).sum::<i32>() * next_field.height() + next_field.count())
 }
 
 fn line_answer(field: Field, stamps: &[Stamp], beam_width: i32, instant: &Instant, duration: &Duration) -> Option<Vec<(i16, i16)>> {

@@ -31,7 +31,7 @@ pub fn answer(mut field: Field, stamps: &[Stamp], instant: &Instant, duration: &
 
                     field.stamp(stamp, x, y);
 
-                    let cost = field.field_units().iter().map(|field_unit| popcount_u64s(&field_unit.lines()[y as usize..(y + (min(stamp_max_height, field.height() - y) + 3) & !0b0011) as usize])).sum();
+                    let cost = field.count_in(y, min(stamp_max_height, field.height() - y));
 
                     if cost < best_cost {
                         best_cost = cost;

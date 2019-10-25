@@ -4,6 +4,7 @@ use std::time::*;
 
 use super::game::*;
 
+#[inline(always)]
 fn target_x(field: &Field, y: i32) -> Option<i32> {
     field.field_units().iter().enumerate().find_map(|(i, field_unit)| {
         if field_unit.lines()[y as usize] != 0 {

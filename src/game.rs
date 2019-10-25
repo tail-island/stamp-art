@@ -1,6 +1,7 @@
 use std::arch::x86_64::*;
 use std::cmp::*;
 
+#[inline(always)]
 fn popcount_u64s(u64s: &[u64]) -> i32 {  // u64sの要素数は4の整数倍。
     unsafe {
         let table = _mm256_setr_epi8(0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4);
@@ -47,6 +48,7 @@ struct Bitmap {
 }
 
 impl Bitmap {
+    #[inline(always)]
     fn new(mut lines: Vec<u64>, width: i32) -> Bitmap {
         Bitmap {
             width: width,
@@ -63,10 +65,12 @@ impl Bitmap {
         }
     }
 
+    #[inline(always)]
     fn count(&self) -> i32 {
         popcount_u64s(&self.lines[0..((self.height + 3) & !0b0011) as usize])
     }
 
+    #[inline(always)]
     fn count_in(&self, y: i32, height: i32) -> i32 {
         popcount_u64s(&self.lines[y as usize..(y + (height + 3) & !0b0011) as usize])
     }
@@ -75,22 +79,27 @@ impl Bitmap {
 pub struct Stamp(Bitmap);
 
 impl Stamp {
+    #[inline(always)]
     pub fn new(lines: Vec<u64>, width: i32) -> Stamp {
         Stamp(Bitmap::new(lines, width))
     }
 
+    #[inline(always)]
     pub fn width(&self) -> i32 {
         self.0.width
     }
 
+    #[inline(always)]
     pub fn height(&self) -> i32 {
         self.0.height
     }
 
+    #[inline(always)]
     pub fn lines(&self) -> &[u64] {
         &self.0.lines
     }
 
+    #[inline(always)]
     pub fn count(&self) -> i32 {
         self.0.count()
     }
@@ -100,30 +109,37 @@ impl Stamp {
 pub struct FieldUnit(Bitmap);
 
 impl FieldUnit {
+    #[inline(always)]
     pub fn new(lines: Vec<u64>, width: i32) -> FieldUnit {
         FieldUnit(Bitmap::new(lines, width))
     }
 
+    #[inline(always)]
     pub fn width(&self) -> i32 {
         self.0.width
     }
 
+    #[inline(always)]
     pub fn height(&self) -> i32 {
         self.0.height
     }
 
+    #[inline(always)]
     pub fn lines(&self) -> &[u64] {
         &self.0.lines
     }
 
+    #[inline(always)]
     pub fn count(&self) -> i32 {
         self.0.count()
     }
 
+    #[inline(always)]
     pub fn count_in(&self, y: i32, height: i32) -> i32 {
         self.0.count_in(y, height)
     }
 
+    #[inline(always)]
     pub fn stamp(&mut self, stamp: &Stamp, x: i32, y: i32) {
         unsafe {
             let y_1 = max( y, 0);
@@ -155,6 +171,7 @@ impl FieldUnit {
         self.0.lines[(self.0.height + 2) as usize] = 0;
     }
 
+    #[inline(always)]
     fn stamp_on_top_with_mask(&mut self, stamp: &Stamp, x: i32) {
         unsafe {
             let height = min(self.0.height, stamp.0.height);
@@ -184,6 +201,7 @@ impl FieldUnit {
         self.0.lines[(self.0.height + 2) as usize] = 0;
     }
 
+    #[inline(always)]
     fn stamp_on_top_without_mask(&mut self, stamp: &Stamp, x: i32) {
         unsafe {
             let height = min(self.0.height, stamp.0.height);
@@ -211,6 +229,7 @@ impl FieldUnit {
         self.0.lines[(self.0.height + 2) as usize] = 0;
     }
 
+    #[inline(always)]
     pub fn stamp_on_top(&mut self, stamp: &Stamp, x: i32) {
         if self.0.width != 64 {
             self.stamp_on_top_with_mask(stamp, x);
@@ -227,6 +246,7 @@ pub struct Field {
 }
 
 impl Field {
+    #[inline(always)]
     pub fn new(field_units: Vec<FieldUnit>, width: i32) -> Field {
         Field {
             width,
@@ -234,18 +254,22 @@ impl Field {
         }
     }
 
+    #[inline(always)]
     pub fn width(&self) -> i32 {
         self.width
     }
 
+    #[inline(always)]
     pub fn height(&self) -> i32 {
         self.field_units[0].height()
     }
 
+    #[inline(always)]
     pub fn field_units(&self) -> &[FieldUnit] {
         &self.field_units
     }
 
+    #[inline(always)]
     pub fn count(&self) -> i32 {
         let mut result = 0;
 
@@ -256,6 +280,7 @@ impl Field {
         result
     }
 
+    #[inline(always)]
     pub fn count_in(&self, y: i32, height: i32) -> i32 {
         let mut result = 0;
 
@@ -266,6 +291,7 @@ impl Field {
         result
     }
 
+    #[inline(always)]
     pub fn stamp(&mut self, stamp: &Stamp, x: i32, y: i32) {
         let i_1 =  x                      / 64;
         let i_2 = (x + stamp.width() - 1) / 64;
@@ -279,6 +305,7 @@ impl Field {
         self.field_units[i_2 as usize].stamp(stamp, x % 64 - 64, y);
     }
 
+    #[inline(always)]
     pub fn stamp_on_top(&mut self, stamp: &Stamp, x: i32) {
         let i_1 =  x                      / 64;
         let i_2 = (x + stamp.width() - 1) / 64;

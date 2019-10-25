@@ -5,6 +5,7 @@ use std::time::*;
 
 use super::game::*;
 
+#[inline(always)]
 fn target_field(field: &Field, stamps: &[Stamp], y: i32) -> Field {
     let height = min(stamps.iter().map(|stamp| stamp.height()).max().unwrap(), field.height() - y);
 
@@ -14,6 +15,7 @@ fn target_field(field: &Field, stamps: &[Stamp], y: i32) -> Field {
     )
 }
 
+#[inline(always)]
 fn target_x(field: &Field) -> Option<i32> {
     field.field_units().iter().enumerate().find_map(|(i, field_unit)| {
         if field_unit.lines()[0] != 0 {
@@ -24,6 +26,7 @@ fn target_x(field: &Field) -> Option<i32> {
     })
 }
 
+#[inline(always)]
 fn next_field(prev_field: &Field, stamp: &Stamp, x: i32) -> Field {
     let mut result = prev_field.clone();
 
@@ -32,6 +35,7 @@ fn next_field(prev_field: &Field, stamp: &Stamp, x: i32) -> Field {
     result
 }
 
+#[inline(always)]
 fn next_line_answer(prev_line_answer: &[(i16, i16)], s: i16, x: i16) -> Vec<(i16, i16)> {
     let mut result = Vec::with_capacity(prev_line_answer.len() + 1);
 
@@ -41,10 +45,12 @@ fn next_line_answer(prev_line_answer: &[(i16, i16)], s: i16, x: i16) -> Vec<(i16
     result
 }
 
+#[inline(always)]
 fn next_score(next_field: &Field) -> i32 {
     -(next_field.field_units().iter().map(|field_unit| unsafe { _popcnt64(field_unit.lines()[0] as i64) } as i32).sum::<i32>() * next_field.height() + next_field.count())
 }
 
+#[inline(always)]
 fn line_answer(field: Field, stamps: &[Stamp], beam_width: i32, instant: &Instant, duration: &Duration) -> Option<Vec<(i16, i16)>> {
     struct Node {
         field: Field,
@@ -53,6 +59,7 @@ fn line_answer(field: Field, stamps: &[Stamp], beam_width: i32, instant: &Instan
     }
 
     impl PartialEq for Node {
+        #[inline(always)]
         fn eq(&self, other: &Self) -> bool {
             self.score == other.score
         }
@@ -61,12 +68,14 @@ fn line_answer(field: Field, stamps: &[Stamp], beam_width: i32, instant: &Instan
     impl Eq for Node {}
 
     impl PartialOrd for Node {
+        #[inline(always)]
         fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
             Some(self.cmp(&other))
         }
     }
 
     impl Ord for Node {
+        #[inline(always)]
         fn cmp(&self, other: &Self) -> Ordering {
             self.score.cmp(&other.score)
         }

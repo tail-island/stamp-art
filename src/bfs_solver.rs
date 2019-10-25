@@ -7,6 +7,7 @@ const W: i32   = 20;
 const C: usize = 1 << W;
 const M: u32   = 0xffff_ffff >> (32 - W);
 
+#[inline(always)]
 fn next_line_answer(prev_line_answer: &[(u8, u8)], s: u8, x: u8) -> Vec<(u8, u8)> {
     let mut result = Vec::with_capacity(prev_line_answer.len() + 1);
 
@@ -16,6 +17,7 @@ fn next_line_answer(prev_line_answer: &[(u8, u8)], s: u8, x: u8) -> Vec<(u8, u8)
     result
 }
 
+#[inline(always)]
 fn line_answers(stamp_lines: &[u32]) -> Vec<Vec<(u8, u8)>> {
     let mut result = Vec::new(); result.resize(C, Vec::new());
 
@@ -46,6 +48,7 @@ fn line_answers(stamp_lines: &[u32]) -> Vec<Vec<(u8, u8)>> {
     result
 }
 
+#[inline(always)]
 fn line(field: &Field, x: i32, y: i32) -> u32 {
     let i_1 =  x          / 64;
     let i_2 = (x + W - 1) / 64;

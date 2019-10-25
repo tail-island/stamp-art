@@ -1,7 +1,7 @@
 use std::time::*;
 
 use stamp_art::beam_solver;
-use stamp_art::bfs_solver;
+use stamp_art::breadth_first_solver;
 use stamp_art::hill_climbing_solver;
 use stamp_art::io::*;
 
@@ -13,12 +13,12 @@ fn main() {
 
     let answer = {
         let (mut result, field, stamps, is_rev) = {
-            let result = bfs_solver::answer(field.clone(), &stamps);
+            let result = breadth_first_solver::answer(field.clone(), &stamps);
             eprintln!("{}\t{}", result.len(), instant.elapsed().as_millis());
 
             let (rev_field, rev_stamps) = rev_question(&field, &stamps);
 
-            let rev_result = bfs_solver::answer(rev_field.clone(), &rev_stamps);
+            let rev_result = breadth_first_solver::answer(rev_field.clone(), &rev_stamps);
             eprintln!("{}\t{}", rev_result.len(), instant.elapsed().as_millis());
 
             if result.len() <= rev_result.len() {

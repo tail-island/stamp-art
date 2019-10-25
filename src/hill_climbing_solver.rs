@@ -22,6 +22,8 @@ pub fn answer(mut field: Field, stamps: &[Stamp], instant: &Instant, duration: &
 
     for y in 0..field.height() {
         if instant.elapsed() <= *duration {
+            let count_height = min(stamp_max_height, field.height() - y);
+
             while let Some(target_x) = target_x(&field, y) {
                 let mut best_cost = i32::max_value();
                 let mut best_s = 0;
@@ -32,7 +34,7 @@ pub fn answer(mut field: Field, stamps: &[Stamp], instant: &Instant, duration: &
 
                     field.stamp(stamp, x, y);
 
-                    let cost = field.count_in(y, min(stamp_max_height, field.height() - y));
+                    let cost = field.count_in(y, count_height);
 
                     if cost < best_cost {
                         best_cost = cost;

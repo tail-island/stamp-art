@@ -2,7 +2,7 @@ use std::time::*;
 
 use stamp_art::beam_solver;
 use stamp_art::breadth_first_solver;
-use stamp_art::hill_climbing_solver;
+use stamp_art::greedy_solver;
 use stamp_art::io::*;
 
 fn main() {
@@ -30,7 +30,7 @@ fn main() {
 
         for beam_width in &[1, 32, 128, 256, 512, 1024, 2048, 4096] {
             let answer = if *beam_width == 1 {
-                hill_climbing_solver::answer(field.clone(), &stamps, &instant, &duration)
+                greedy_solver::answer(field.clone(), &stamps, &instant, &duration)
             } else {
                 beam_solver::answer(field.clone(), &stamps, *beam_width, &instant, &duration)
             };
